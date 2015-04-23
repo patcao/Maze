@@ -14,6 +14,26 @@ const int dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 int state[99];                              // -1, 0, 1 for don't know, no wall, wall
 int where[2] = {9, 7}, face = 0;            // where are we and what direction are we facing?
 
+bool isBoundary(int i, int j){
+    return i==0 || i==10 || j==0 || j==9;
+}
+
+void printRep(){
+    for(int i=0; i<11; i++){
+        for(int j=0; j<9; j++){
+            if(i==where[0] && j==where[1]) cout << "X ";
+            else if(i%2 && j%2) cout << "  ";
+            else switch(state[9*i+j]){
+                case 0: cout << "  "; break;
+                case 1: cout << "1 "; break;
+                default: cout << (isBoundary(i, j) ? "1 " : "  ");
+            }
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
 void recordInfo(){                          // Check sensors, write information         
     for(int d=0; d<4; d++){
         int i = where[0] + dir[d][0];
@@ -44,7 +64,7 @@ void go(int i, int j, int k){
             go(i, j, (k+t) % 4);
             if(t==1) turnLeft();
             else turnRight();
-            face = (face + t) % 4;
+            face = (face + 4 - t) % 4;
             return;
         }
     }
@@ -73,7 +93,6 @@ bool findNearestUnknown(){
         q.pop();
         
         if(seesNew(top.i, top.j)){
-            cout << "PEPE WANTS TO GO TO " << top.i << " " << top.j << " " << top.k << endl;
             go(top.i, top.j, top.k);
             return true;
         }
@@ -81,7 +100,7 @@ bool findNearestUnknown(){
         for(int t=1; t<=3; t+=2)
             if(dst[top.i][top.j][(top.k+t)%4] == INF){
                 dst[top.i][top.j][(top.k+t)%4] = dst[top.i][top.j][top.k] + 1;
-                q.push(loc(top.i, top.j, (top.k+1)%4));
+                q.push(loc(top.i, top.j, (top.k+t)%4));
             }
 
         int facing = 9 * (top.i + dir[top.k][0]) + top.j + dir[top.k][1];
@@ -99,81 +118,19 @@ bool findNearestUnknown(){
     return false;
 }
 
-void printRep(){
-    cout << endl << "Pepe's at " << where[0] << ", " << where[1] << " facing " << face << "and he knows:" << endl;
-    for(int i=0; i<11; i++){
-        for(int j=0; j<9; j++){
-            if(i%2 && j%2) cout << "  ";
-            else switch(state[9*i+j]){
-                case 0: cout << "  "; break;
-                case 1: cout << "1 "; break;
-                default: cout << "? ";
-            }
-        }
-        cout << endl;
-    }
-    cout << endl;
-}
-
 void pepeTheMazeSolver(){
     memset(state, 0xff, sizeof(state));
-    //while(findNearestUnknown())
     do{
         recordInfo();
-        printRep();
+        //printRep();
     }while(findNearestUnknown());
+    printRep();
 }
 
 int main() {
     mazeGen();
     printMaze();
-
     pepeTheMazeSolver();
-    //wallFollowing();    
-
     printStats();
 	return 0;	
 }
-
-/*int wallFollowing(){
-	int i = 30;
-	while (i > 0) {
-		if (getSensorRight() == 0) {		
-			turnRight();
-			if (!forward()) { //this still calls "forward", just checks if it worked as well 
-				cout << "broke through wall" << endl;
-				return 0;
-			}
-		}
-		else if (getSensorFront() == 0) {
-			if (!forward()) {
-				cout << "broke through wall" << endl;
-				return 0;
-			}
-		}
-		else if (getSensorLeft() == 0) {
-			turnLeft();
-			if (!forward()) {
-				cout << "broke through wall" << endl;
-				return 0;
-			}
-		}
-		else if (getSensorBehind() == 0) {
-			turnLeft();
-			turnLeft();
-			if (!forward()) {
-				cout << "broke through wall" << endl;
-				return 0;
-			}
-		}
-		else {
-			cout << "trapped. exiting." << endl;
-			return 0;
-		}
-		printLocation();
-		printDirection();
-//    printCurrPos();
-		i--;
-	}
-  return 0;
-}*/
