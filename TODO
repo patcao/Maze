@@ -1,0 +1,11 @@
+Implement heuristic search
+
+add ability to print what the algorithm thinks the maze looks like
+
+Fix DFS. Currently will go all way back to the start
+Need to implement a better end condition
+- Constant lookup time for edges?
+
+Code looks like shit
+
+Need to be able to infer when removing an edge creates a disjoint component
