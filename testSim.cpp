@@ -128,9 +128,45 @@ void pepeTheMazeSolver(){
 }
 
 int main() {
+ 
+  printMaze();
+
+  printDirection();
+  printLocation();
+  cout <<  "North: " << getSensor(0) << endl;
+  cout <<  "East: " <<  getSensor(1) << endl;
+  cout <<  "South: " <<  getSensor(2) << endl;
+  cout <<  "West: " << getSensor(3) << endl;  
+  
+turnRight();
+
+  printDirection();
+  printLocation();
+  cout <<  "North: " << getSensor(0) << endl;
+  cout <<  "East: " <<  getSensor(1) << endl;
+  cout <<  "South: " <<  getSensor(2) << endl;
+  cout <<  "West: " << getSensor(3) << endl;  
+turnRight();
+
+  printDirection();
+  printLocation();
+  cout <<  "North: " << getSensor(0) << endl;
+  cout <<  "East: " <<  getSensor(1) << endl;
+  cout <<  "South: " <<  getSensor(2) << endl;
+  cout <<  "West: " << getSensor(3) << endl;  
+turnRight();
+
+  printDirection();
+  printLocation();
+  cout <<  "North: " << getSensor(0) << endl;
+  cout <<  "East: " <<  getSensor(1) << endl;
+  cout <<  "South: " <<  getSensor(2) << endl;
+  cout <<  "West: " << getSensor(3) << endl;  
+ 
     mazeGen();
     printMaze();
     pepeTheMazeSolver();
     printStats();
+   
 	return 0;	
 }

@@ -8,10 +8,13 @@
 using namespace std;
 
 int location[2] = {7,9};
+//0 - North   1 - East
+//2 - South   4 - West
 int direction = 0;
 int numSteps = 0;
-int numMoves = 0;
+int numTurns = 0;
 time_t mazeSeed;
+const int dir_arr[4] = {-9, 1, 9,- 1}; 
 
 //the maze is 9x11 to represent the physical 4'x5' maze.
 int maze[99] = {  1, 1, 1, 1, 1, 1, 1, 1, 1,    
@@ -21,7 +24,7 @@ int maze[99] = {  1, 1, 1, 1, 1, 1, 1, 1, 1,
           				1, 0, 1, 0, 1, 0, 1, 0, 1,
           				1, 0, 1, 0, 1, 0, 1, 0, 1,
           				1, 0, 1, 0, 1, 0, 1, 0, 1,
-          				1, 0, 1, 0, 1, 0, 1, 0, 1,
+          				1, 0, 1, 0, 1, 1, 0, 0, 1,
           				1, 0, 1, 0, 1, 0, 1, 0, 1,
           				1, 0, 1, 0, 0, 0, 1, 0, 1,
           				1, 1, 1, 1, 1, 1, 1, 1, 1 };
@@ -56,12 +59,14 @@ void mazeGen(){
       maze[i*9+j+2] = 1;
     }
   }
-
+  
+  numTurns = 0;
+  numSteps = 0;
 }
 
 bool forward() {  
-	int location1D = location[1]*9 + location[0];
-	bool hitWall = false;
+	int loc1D = location[1]*9 + location[0];
+  /*
 	if (direction == 0) {
 		if (maze[location1D-9] == 1)
 			hitWall = true;
@@ -82,7 +87,21 @@ bool forward() {
 			hitWall = true;
 		location[0] -= 2;
 	}
-	if (hitWall) {
+  */
+
+  
+  //update robot location  
+	if (direction == 0) 
+		location[1]-= 2;	
+	else if (direction == 1) 
+		location[1] += 2;
+	else if (direction == 2) 
+		location[0] += 2;	
+	else 
+		location[0] -= 2;
+	
+
+	if (maze[loc1D + dir_arr[direction]]) {
 		cout << "HIT WALL!" << endl;
 		return false;
 	}
@@ -90,23 +109,18 @@ bool forward() {
 		return false;
 
   ++numSteps;
-  ++numMoves;
 	return true;
 }
 
 bool turnRight() {
-	direction = (direction == 0 ? 2 : (
-					direction == 1 ? 3 : (
-					direction == 2 ? 1 : 0)));
-  ++numMoves;
+  direction = (direction + 1) % 4;
+  ++numTurns;
 	return true;
 }
 
 bool turnLeft() {
-	direction = (direction == 0 ? 3 : (
-					direction == 1 ? 2 : (
-					direction == 2 ? 0 : 1)));
-  ++numMoves;
+  direction = (direction - 1) % 4;
+  ++numTurns;
 	return true;
 }
 
@@ -118,32 +132,37 @@ int getSensor(int dir){
     default: return getSensorLeft();
   }
 }
+
 int getSensorFront() {
-	int location1D = location[1]*9 + location[0];
-	if (direction == 0)
-		return maze[location1D-9];
-	else if (direction == 1)
-		return maze[location1D+9];
-	else if (direction == 2)
-		return maze[location1D+1];
-	else
-		return maze[location1D-1];
+	int loc1D = location[1]*9 + location[0];
+  /*
+  int ret = 0;
+  for(; loc1D > 0 && loc1D < 99; loc1D += dir_arr[direction]){
+    if(maze[loc1D])
+      return ret;
+    ++ret;
+  }
+  return ret;*/
+  return maze[loc1D + dir_arr[direction]];
 }
 
 int getSensorRight() {
-	int location1D = location[1]*9 + location[0];
-	if (direction == 0)
-		return maze[location1D+1];
-	else if (direction == 1)
-		return maze[location1D-1];
-	else if (direction == 2)
-		return maze[location1D+9];
-	else
-		return maze[location1D-9];
+	int loc1D = location[1]*9 + location[0];
+  /*
+  int ret = 0;
+  for(; loc1D > 0 && loc1D < 99; loc1D += dir_arr[ (direction+1) % 4]){
+    if(maze[loc1D])
+      return ret;
+    ++ret;
+  }
+  return ret;
+  */
+  return maze[loc1D + dir_arr[ (direction+1)%4]];
 }
 
 int getSensorLeft() {
-	int location1D = location[1]*9 + location[0];
+	int loc1D = location[1]*9 + location[0];
+  /*
 	if (direction == 0)
 		return maze[location1D-1];
 	else if (direction == 1)
@@ -151,10 +170,14 @@ int getSensorLeft() {
 	else if (direction == 2)
 		return maze[location1D-9];
 	else
-		return maze[location1D+9];}
+		return maze[location1D+9];
+    */
+  return maze[loc1D + dir_arr[ (direction+3)%4]];
+}
 
 int getSensorBehind() {
-	int location1D = location[1]*9 + location[0];
+	int loc1D = location[1]*9 + location[0];
+  /*
 	if (direction == 0)
 		return maze[location1D+9];
 	else if (direction == 1)
@@ -163,6 +186,8 @@ int getSensorBehind() {
 		return maze[location1D-1];
 	else
 		return maze[location1D+1];
+    */
+  return maze[loc1D + dir_arr[ (direction+2)%4]];
 }
 
 
@@ -190,14 +215,12 @@ void printLocation() { //for debugging only
 
 void printDirection() { //for debugging only
 	cout << "facing ";
-	if (direction == 0)
-		cout << "north";
-	else if (direction == 1)
-		cout << "south";
-	else if (direction == 2)
-		cout << "east";
-	else
-		cout << "west";
+  switch(direction){
+    case 0: cout << "north"; break;
+    case 1: cout << "east"; break;
+    case 2: cout << "south"; break;
+    default: cout << "west"; break;
+  }
 	cout << endl;
 	return;
 }
@@ -224,7 +247,5 @@ int numStepsTaken(){
 
 void printStats(){
   cout << "Steps: " << numSteps << endl;
-  cout << "Moves: " << numMoves << endl;
-
+  cout << "Turns: " << numTurns << endl;
 }
-
