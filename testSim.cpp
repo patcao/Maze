@@ -12,7 +12,9 @@ const int INF = 0x7f7f7f7f;
 const int dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
 int state[99];                              // -1, 0, 1 for don't know, no wall, wall
-int where[2] = {9, 7}, face = 0;            // where are we and what direction are we facing?
+int where[2] = {9, 7};
+
+int face = 0;            // where are we and what direction are we facing?
 
 bool isBoundary(int i, int j){
     return i==0 || i==10 || j==0 || j==9;
@@ -122,14 +124,37 @@ void pepeTheMazeSolver(){
     memset(state, 0xff, sizeof(state));
     do{
         recordInfo();
-        //printRep();
+        printRep();
     }while(findNearestUnknown());
     printRep();
 }
 
+
+
 int main() {
  
+
+
   printMaze();
+  /*
+  printLocation();
+  for(int i = 0; i <3; ++i){
+    printDirection();
+    cout <<  "North: " << getSensor(0) << endl;
+    cout <<  "East: " <<  getSensor(1) << endl;
+    cout <<  "South: " <<  getSensor(2) << endl;
+    cout <<  "West: " << getSensor(3) << endl;  
+    turnLeft();
+  }
+    cout <<  "North: " << getSensor(0) << endl;
+    cout <<  "East: " <<  getSensor(1) << endl;
+    cout <<  "South: " <<  getSensor(2) << endl;
+    cout <<  "West: " << getSensor(3) << endl;  
+    */
+
+
+/*
+  forward();  
 
   printDirection();
   printLocation();
@@ -137,36 +162,16 @@ int main() {
   cout <<  "East: " <<  getSensor(1) << endl;
   cout <<  "South: " <<  getSensor(2) << endl;
   cout <<  "West: " << getSensor(3) << endl;  
-  
-turnRight();
 
-  printDirection();
-  printLocation();
-  cout <<  "North: " << getSensor(0) << endl;
-  cout <<  "East: " <<  getSensor(1) << endl;
-  cout <<  "South: " <<  getSensor(2) << endl;
-  cout <<  "West: " << getSensor(3) << endl;  
-turnRight();
+*/
 
-  printDirection();
-  printLocation();
-  cout <<  "North: " << getSensor(0) << endl;
-  cout <<  "East: " <<  getSensor(1) << endl;
-  cout <<  "South: " <<  getSensor(2) << endl;
-  cout <<  "West: " << getSensor(3) << endl;  
-turnRight();
-
-  printDirection();
-  printLocation();
-  cout <<  "North: " << getSensor(0) << endl;
-  cout <<  "East: " <<  getSensor(1) << endl;
-  cout <<  "South: " <<  getSensor(2) << endl;
-  cout <<  "West: " << getSensor(3) << endl;  
  
-    mazeGen();
     printMaze();
     pepeTheMazeSolver();
+    printRep();
     printStats();
+  
    
 	return 0;	
 }
+

@@ -8,13 +8,14 @@
 using namespace std;
 
 int location[2] = {7,9};
+
 //0 - North   1 - East
 //2 - South   4 - West
 int direction = 0;
 int numSteps = 0;
 int numTurns = 0;
 time_t mazeSeed;
-const int dir_arr[4] = {-9, 1, 9,- 1}; 
+const int dir_arr[4] = {-9, 1, 9, -1}; 
 
 //the maze is 9x11 to represent the physical 4'x5' maze.
 int maze[99] = {  1, 1, 1, 1, 1, 1, 1, 1, 1,    
@@ -24,7 +25,7 @@ int maze[99] = {  1, 1, 1, 1, 1, 1, 1, 1, 1,
           				1, 0, 1, 0, 1, 0, 1, 0, 1,
           				1, 0, 1, 0, 1, 0, 1, 0, 1,
           				1, 0, 1, 0, 1, 0, 1, 0, 1,
-          				1, 0, 1, 0, 1, 1, 0, 0, 1,
+          				1, 0, 1, 0, 1, 0, 1, 0, 1,
           				1, 0, 1, 0, 1, 0, 1, 0, 1,
           				1, 0, 1, 0, 0, 0, 1, 0, 1,
           				1, 1, 1, 1, 1, 1, 1, 1, 1 };
@@ -89,14 +90,14 @@ bool forward() {
 	}
   */
 
-  
+ 
   //update robot location  
 	if (direction == 0) 
 		location[1]-= 2;	
 	else if (direction == 1) 
-		location[1] += 2;
+		location[0] += 2;
 	else if (direction == 2) 
-		location[0] += 2;	
+		location[1] += 2;	
 	else 
 		location[0] -= 2;
 	
@@ -119,7 +120,7 @@ bool turnRight() {
 }
 
 bool turnLeft() {
-  direction = (direction - 1) % 4;
+  direction = (direction + 3) % 4;
   ++numTurns;
 	return true;
 }
