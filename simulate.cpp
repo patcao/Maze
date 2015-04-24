@@ -67,30 +67,6 @@ void mazeGen(){
 
 bool forward() {  
 	int loc1D = location[1]*9 + location[0];
-  /*
-	if (direction == 0) {
-		if (maze[location1D-9] == 1)
-			hitWall = true;
-		location[1]-= 2;
-	}
-	else if (direction == 1) {
-		if (maze[location1D+9] == 1)
-			hitWall = true;
-		location[1] += 2;
-	}
-	else if (direction == 2) {
-		if (maze[location1D+1] == 1)
-			hitWall = true;
-		location[0] += 2;
-	}
-	else {
-		if (maze[location1D-1] == 1)
-			hitWall = true;
-		location[0] -= 2;
-	}
-  */
-
- 
   //update robot location  
 	if (direction == 0) 
 		location[1]-= 2;	
@@ -101,7 +77,6 @@ bool forward() {
 	else 
 		location[0] -= 2;
 	
-
 	if (maze[loc1D + dir_arr[direction]]) {
 		cout << "HIT WALL!" << endl;
 		return false;
@@ -134,6 +109,17 @@ int getSensor(int dir){
   }
 }
 
+int getFarSensor(int dir){
+	int loc1D = location[1]*9 + location[0];
+  int ret = 0;
+  for(; loc1D > 0 && loc1D < 99; loc1D += dir_arr[ (direction + dir) % 4]){
+    if(maze[loc1D])
+      return ret;
+      ++ret;
+  }
+  return ret;
+}
+
 int getSensorFront() {
 	int loc1D = location[1]*9 + location[0];
   /*
@@ -149,45 +135,16 @@ int getSensorFront() {
 
 int getSensorRight() {
 	int loc1D = location[1]*9 + location[0];
-  /*
-  int ret = 0;
-  for(; loc1D > 0 && loc1D < 99; loc1D += dir_arr[ (direction+1) % 4]){
-    if(maze[loc1D])
-      return ret;
-    ++ret;
-  }
-  return ret;
-  */
   return maze[loc1D + dir_arr[ (direction+1)%4]];
 }
 
 int getSensorLeft() {
 	int loc1D = location[1]*9 + location[0];
-  /*
-	if (direction == 0)
-		return maze[location1D-1];
-	else if (direction == 1)
-		return maze[location1D+1];
-	else if (direction == 2)
-		return maze[location1D-9];
-	else
-		return maze[location1D+9];
-    */
   return maze[loc1D + dir_arr[ (direction+3)%4]];
 }
 
 int getSensorBehind() {
 	int loc1D = location[1]*9 + location[0];
-  /*
-	if (direction == 0)
-		return maze[location1D+9];
-	else if (direction == 1)
-		return maze[location1D-9];
-	else if (direction == 2)
-		return maze[location1D-1];
-	else
-		return maze[location1D+1];
-    */
   return maze[loc1D + dir_arr[ (direction+2)%4]];
 }
 

@@ -15,6 +15,7 @@ int getSensorRight();
 int getSensorLeft();
 int getSensorBehind();
 int getSensor(int dir);
+int getFarSensor(int d);
 
 void printCurrPos();
 void printLocation();

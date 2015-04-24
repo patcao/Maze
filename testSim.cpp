@@ -124,47 +124,24 @@ void pepeTheMazeSolver(){
     memset(state, 0xff, sizeof(state));
     do{
         recordInfo();
-        printRep();
+        //printRep();
     }while(findNearestUnknown());
     printRep();
 }
 
 
 
-int main() {
- 
-
-
-  printMaze();
-  /*
+int main() { 
   printLocation();
-  for(int i = 0; i <3; ++i){
+  for(int i = 0; i < 4; ++i){
     printDirection();
-    cout <<  "North: " << getSensor(0) << endl;
-    cout <<  "East: " <<  getSensor(1) << endl;
-    cout <<  "South: " <<  getSensor(2) << endl;
-    cout <<  "West: " << getSensor(3) << endl;  
+    cout <<  "Front: " << getFarSensor(0) << endl;
+    cout <<  "Right: " <<  getFarSensor(1) << endl;
+    cout <<  "Behind: " <<  getFarSensor(2) << endl;
+    cout <<  "Left: " << getFarSensor(3) << endl << endl;  
     turnLeft();
   }
-    cout <<  "North: " << getSensor(0) << endl;
-    cout <<  "East: " <<  getSensor(1) << endl;
-    cout <<  "South: " <<  getSensor(2) << endl;
-    cout <<  "West: " << getSensor(3) << endl;  
-    */
-
-
-/*
-  forward();  
-
-  printDirection();
-  printLocation();
-  cout <<  "North: " << getSensor(0) << endl;
-  cout <<  "East: " <<  getSensor(1) << endl;
-  cout <<  "South: " <<  getSensor(2) << endl;
-  cout <<  "West: " << getSensor(3) << endl;  
-
-*/
-
+  
  
     printMaze();
     pepeTheMazeSolver();
