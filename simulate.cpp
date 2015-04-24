@@ -4,6 +4,7 @@
 #include <ctime>
 #include <time.h>
 #include <fstream>
+#include <queue>
 
 using namespace std;
 
@@ -60,9 +61,53 @@ void mazeGen(){
       maze[i*9+j+2] = 1;
     }
   }
-  
+  clearSections(); 
   numTurns = 0;
   numSteps = 0;
+}
+
+
+void clearSections(){
+  bool v[99];
+  memset(v,false,sizeof(v));
+
+  int loc1D = location[1]*9 + location[0];
+  queue<int> q;
+  q.push(loc1D);
+  //mark edges as seen
+  for(int i = 0; i < 99; i+=9)
+    v[i] = true, v[i+8] = true;
+  for(int j = 0; j < 9; ++j)
+    v[j] = true, v[10*9+j] = true;
+
+  //bfs
+  while(!q.empty()){
+    int curr = q.front();
+    q.pop();
+    v[curr] = true;
+
+    for(int i = 0; i < 4; ++i){
+      int next = curr + dir_arr[i];
+      if(!v[next] && !maze[next])
+        q.push(next);
+
+      if(!v[next] && maze[next])
+        v[next] = true;
+    }
+
+    //fixes up cut corners
+    int diag[4] = {-8,-10,8,10};
+    for(int i = 0; i < 4; ++i){
+      int next = curr + diag[i];
+      if(!v[next] && maze[next])
+        v[next] = true;
+    }
+      
+  }
+
+  for(int i = 0; i < 99; ++i)
+    if(!v[i])
+      maze[i] = 0;
 }
 
 bool forward() {  

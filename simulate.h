@@ -6,6 +6,7 @@
 #define SIMULATE
 
 void mazeGen();
+void clearSections();
 bool forward();
 bool turnRight();
 bool turnLeft();

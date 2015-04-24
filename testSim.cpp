@@ -132,6 +132,7 @@ void pepeTheMazeSolver(){
 
 
 int main() { 
+  /*
   printLocation();
   for(int i = 0; i < 4; ++i){
     printDirection();
@@ -141,11 +142,10 @@ int main() {
     cout <<  "Left: " << getFarSensor(3) << endl << endl;  
     turnLeft();
   }
-  
- 
-    printMaze();
+  */
+    mazeGen();    
+    printMaze();   
     pepeTheMazeSolver();
-    printRep();
     printStats();
   
    
