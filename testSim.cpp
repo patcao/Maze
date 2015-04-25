@@ -126,9 +126,29 @@ void pepeTheMazeSolver(){
         recordInfo();
         //printRep();
     }while(findNearestUnknown());
-    printRep();
+
+  //mark the edge of the maze
+  for(int i = 0; i < 99; i+=9)
+    state[i] = 1, state[i+8] = 1;
+  for(int j = 0; j < 9; ++j)
+    state[j] = 1, state[10*9+j] = 1;
+
+  // Fix all -1 
+  for(int i = 0; i < 99; ++i)
+    if(state[i] == -1)
+      state[i] = 0;
+
+  printRep();
 }
 
+bool verifyRep(){
+  for(int i = 0; i < 99; ++i)
+    if(getMaze(i) != state[i]){
+      cout << i << " " << getMaze(i) << " " << state[i] << endl;
+      return false;
+    }
+  return true;
+}
 
 
 int main() { 
@@ -143,11 +163,16 @@ int main() {
     turnLeft();
   }
   */
+  int times = 1;
+for(int i = 0; i < times; ++i){
     mazeGen();    
+    //mazeWithSeed(-298599628);
     printMaze();   
     pepeTheMazeSolver();
     printStats();
-  
+    cout << verifyRep() << endl;
+    mySleep(1);
+}
    
 	return 0;	
 }

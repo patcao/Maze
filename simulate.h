@@ -5,7 +5,9 @@
 #ifndef SIMULATE
 #define SIMULATE
 
+int getMaze(int n);
 void mazeGen();
+void mazeWithSeed(int seed);
 void clearSections();
 bool forward();
 bool turnRight();
@@ -25,5 +27,5 @@ void printMaze();
 
 int numStepsTaken();
 void printStats();
-
+void mySleep(int ms);
 #endif

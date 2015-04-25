@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <time.h>
+#include <sys/time.h>
 #include <fstream>
 #include <queue>
 
@@ -15,7 +16,7 @@ int location[2] = {7,9};
 int direction = 0;
 int numSteps = 0;
 int numTurns = 0;
-time_t mazeSeed;
+int mazeSeed;
 const int dir_arr[4] = {-9, 1, 9, -1}; 
 
 //the maze is 9x11 to represent the physical 4'x5' maze.
@@ -31,8 +32,14 @@ int maze[99] = {  1, 1, 1, 1, 1, 1, 1, 1, 1,
           				1, 0, 1, 0, 0, 0, 1, 0, 1,
           				1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
+int getMaze(int n){
+  return maze[n];
+}
+
 void mazeGen(){
-  mazeSeed = time(NULL);
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
+  mazeSeed = (int) tp.tv_sec * 1000L + tp.tv_usec / 1000;
   srand(mazeSeed);
 
   //clear maze
@@ -66,6 +73,40 @@ void mazeGen(){
   numSteps = 0;
 }
 
+void mazeWithSeed(int seed){
+  mazeSeed = seed;
+  srand(mazeSeed);
+
+  //clear maze
+  for(int i = 1; i < 10; ++i)
+    for(int j = 1; j < 8; ++j)
+      maze[i*9 + j] = 0;
+
+  //Lay down vertical section of walls
+  for(int i = 0; i+2 < 10; i+=2){
+    for(int j = 2; j < 8; j+=2){
+      if(rand()%2)
+        continue;
+      maze[i*9+j] = 1;
+      maze[(i+1)*9+j] = 1;
+      maze[(i+2)*9+j] = 1;
+    }
+  }
+
+  //Lay down horizontal section of walls
+  for(int i = 2; i < 10; i+=2){
+    for(int j = 0; j+2 < 8; j+=2){
+      if(rand()%2)
+        continue;
+      maze[i*9+j] = 1;  
+      maze[i*9+j+1] = 1;  
+      maze[i*9+j+2] = 1;
+    }
+  }
+  clearSections(); 
+  numTurns = 0;
+  numSteps = 0;
+}
 
 void clearSections(){
   bool v[99];
@@ -251,4 +292,16 @@ int numStepsTaken(){
 void printStats(){
   cout << "Steps: " << numSteps << endl;
   cout << "Turns: " << numTurns << endl;
+}
+
+void mySleep(int ms){
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
+  long long curr = (long long) tp.tv_sec * 1000L + tp.tv_usec / 1000;
+  long long end = curr + ms;
+  while(curr < end){
+    gettimeofday(&tp, NULL);
+    curr = (long long) tp.tv_sec * 1000L + tp.tv_usec / 1000;
+  }
+
 }
