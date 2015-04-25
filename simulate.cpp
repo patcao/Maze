@@ -68,9 +68,12 @@ void mazeGen(){
       maze[i*9+j+2] = 1;
     }
   }
-  clearSections(); 
   numTurns = 0;
   numSteps = 0;
+  location[0] = 7;
+  location[1] = 9;
+  direction = 0;
+  clearSections(); 
 }
 
 void mazeWithSeed(int seed){
@@ -112,7 +115,7 @@ void clearSections(){
   bool v[99];
   memset(v,false,sizeof(v));
 
-  int loc1D = location[1]*9 + location[0];
+  int loc1D = 9*9 + 7;
   queue<int> q;
   q.push(loc1D);
   //mark edges as seen
@@ -232,6 +235,15 @@ int getSensorLeft() {
 int getSensorBehind() {
 	int loc1D = location[1]*9 + location[0];
   return maze[loc1D + dir_arr[ (direction+2)%4]];
+}
+
+
+int getDirection(){
+  return direction;
+}
+
+std::pair<int,int> getLocation(){
+  return make_pair(location[1],location[0]);
 }
 
 

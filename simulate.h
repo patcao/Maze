@@ -1,7 +1,8 @@
 /* THIS CODE DESIGNED FOR ECE 3400 STUDENTS ONLY.
    IT MAY NOT BE REPRODUCED OR DISTRIBUTED WITHOUT
    PERMISSION OF STAFF. */
-   
+#include <utility>
+    
 #ifndef SIMULATE
 #define SIMULATE
 
@@ -19,6 +20,8 @@ int getSensorLeft();
 int getSensorBehind();
 int getSensor(int dir);
 int getFarSensor(int d);
+int getDirection();
+std::pair<int,int> getLocation();
 
 void printCurrPos();
 void printLocation();

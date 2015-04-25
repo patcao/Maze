@@ -122,9 +122,13 @@ bool findNearestUnknown(){
 
 void pepeTheMazeSolver(){
     memset(state, 0xff, sizeof(state));
+    where[0] = 9;
+    where[1] = 7;
+    face = 0;
+
     do{
         recordInfo();
-        //printRep();
+        printRep();
     }while(findNearestUnknown());
 
   //mark the edge of the maze
@@ -147,6 +151,18 @@ bool verifyRep(){
       cout << i << " " << getMaze(i) << " " << state[i] << endl;
       return false;
     }
+  if(getDirection() != face){
+    cout << "Direction: " << getDirection() << "Robo: " << face << endl;
+    return false;
+  }
+
+  pair<int,int> l = getLocation();  
+  if(l.first != where[0] || l.second != where[1]){
+    cout << "Loc: " << where[0] << " " << where[1] << " ";
+    cout << l.first << " " << l.second << endl;
+    return false;
+  }
+  
   return true;
 }
 
@@ -163,7 +179,7 @@ int main() {
     turnLeft();
   }
   */
-  int times = 1;
+  int times = 20;
 for(int i = 0; i < times; ++i){
     mazeGen();    
     //mazeWithSeed(-298599628);
