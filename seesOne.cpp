@@ -128,7 +128,7 @@ void pepeTheMazeSolver(){
 
     do{
         recordInfo();
-        printRep();
+        //printRep();
     }while(findNearestUnknown());
 
   //mark the edge of the maze
@@ -142,7 +142,7 @@ void pepeTheMazeSolver(){
     if(state[i] == -1)
       state[i] = 0;
 
-  printRep();
+  //printRep();
 }
 
 bool verifyRep(){
@@ -179,17 +179,28 @@ int main() {
     turnLeft();
   }
   */
-  int times = 20;
-for(int i = 0; i < times; ++i){
-    mazeGen();    
-    //mazeWithSeed(-298599628);
-    printMaze();   
-    pepeTheMazeSolver();
-    printStats();
-    cout << verifyRep() << endl;
-    mySleep(1);
-}
-   
+    int times = 10000;
+    int tot_moves = 0;
+    int tot_turns = 0;
+
+    for(int i = 0; i < times; ++i){
+        mazeGen();    
+        //mazeWithSeed(-298599628);
+        //printMaze();   
+    
+        pepeTheMazeSolver();
+       
+        tot_moves += numStepsTaken();
+        tot_turns += numTurnsMade();        
+
+        //printStats();
+        if(!verifyRep()) cout << "pepe was a bad frog" << endl;
+        mySleep(1);
+    }
+
+    cout << "Avg Moves: " << tot_moves / double(times) << endl;
+    cout << "Avg Turns: " << tot_turns / double(times) << endl;
+
 	return 0;	
 }
 

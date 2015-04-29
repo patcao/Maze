@@ -29,6 +29,7 @@ void printDirection();
 void printMaze();
 
 int numStepsTaken();
+int numTurnsMade();
 void printStats();
 void mySleep(int ms);
 #endif

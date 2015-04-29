@@ -24,11 +24,10 @@ void printRep(){
     for(int i=0; i<11; i++){
         for(int j=0; j<9; j++){
             if(i==where[0] && j==where[1]) cout << "X ";
-            else if(i%2 && j%2) cout << "  ";
             else switch(state[9*i+j]){
                 case 0: cout << "  "; break;
                 case 1: cout << "1 "; break;
-                default: cout << (isBoundary(i, j) ? "1 " : "  ");
+                default: cout << "? ";
             }
         }
         cout << endl;
@@ -38,13 +37,33 @@ void printRep(){
 
 void recordInfo(){                          // Check sensors, write information         
     for(int d=0; d<4; d++){
-        int i = where[0] + dir[d][0];
-        int j = where[1] + dir[d][1];
-        state[9*i+j] = getSensor((d - face + 4)%4);
+        int rd = (d - face + 4) % 4;
 
-        if(state[9*i+j]){
-            state[9*(i+dir[d][1]) + j+dir[d][0]] = true;
-            state[9*(i-dir[d][1]) + j-dir[d][0]] = true;
+        if(rd == 2) continue;               // we can't see backwards
+
+        if(rd == 0){                        // if we're looking forwards we can see lots :)
+            int dw = getFarSensor(rd); 
+
+            for(int w=1; w < dw; w+=2)
+                state[9*(where[0] + w*dir[d][0]) + where[1] + w*dir[d][1]] = 0;
+
+            int i = where[0] + dw * dir[d][0];
+            int j = where[1] + dw * dir[d][1];
+            
+            state[9*i+j] = 1;
+            state[9*(i+dir[d][1]) + j+dir[d][0]] = 1;
+            state[9*(i-dir[d][1]) + j-dir[d][0]] = 1;
+        }
+
+        else{
+            int i = where[0] + dir[d][0];
+            int j = where[1] + dir[d][1];
+            state[9*i+j] = getSensor(rd);
+
+            if(state[9*i+j]){
+                state[9*(i+dir[d][1]) + j+dir[d][0]] = 1;
+                state[9*(i-dir[d][1]) + j-dir[d][0]] = 1;
+            }
         }
     }
 }
@@ -77,10 +96,22 @@ void go(int i, int j, int k){
     where[1] += 2*dir[k][1];
 }
 
-bool seesNew(int i, int j){
-    for(int d=0; d<4; d++)
-        if(state[9*(i+dir[d][0]) + j+dir[d][1]] == -1)
-            return true;
+bool seesNew(int i, int j, int f){
+    for(int d=0; d<4; d++){
+        int rd = (f + d) % 4;
+
+        if(d == 2) continue;       // we can't see backwards
+
+        if(d == 0){                // we can see forwards a lot
+            for(int w=1; ; w+=2){
+                int see = state[9*(i+w*dir[rd][0]) + j+w*dir[rd][1]];
+                if(see == 1) break;
+                if(see == -1) return true;
+            } 
+        }
+    
+        else if(state[9*(i+dir[rd][0]) + j+dir[rd][1]] == -1) return true;
+    }
     return false;
 }
 
@@ -94,7 +125,7 @@ bool findNearestUnknown(){
         loc top = q.front();
         q.pop();
         
-        if(seesNew(top.i, top.j)){
+        if(seesNew(top.i, top.j, top.k)){
             go(top.i, top.j, top.k);
             return true;
         }
@@ -120,50 +151,63 @@ bool findNearestUnknown(){
     return false;
 }
 
-void pepeTheMazeSolver(){
-    memset(state, 0xff, sizeof(state));
+void resetPepe(){
     where[0] = 9;
     where[1] = 7;
     face = 0;
 
+    memset(state, 0xff, sizeof(state));
+
+    for(int row=0; row<11; row++){
+        state[9 * row + 0] = 1;
+        state[9 * row + 8] = 1;
+    }
+
+    for(int col=0; col<9; col++){
+        state[9 * 0 + col] = 1;
+        state[9 * 10 + col] = 1;
+    }
+
+    for(int row=1; row<11; row+=2)
+        for(int col=1; col<9; col+=2)
+            state[9*row + col] = 0;
+}
+
+void pepeTheMazeSolver(){
+    resetPepe();
+
     do{
         recordInfo();
-        printRep();
-    }while(findNearestUnknown());
+        //printRep();
+    } while(findNearestUnknown());
 
-  //mark the edge of the maze
-  for(int i = 0; i < 99; i+=9)
-    state[i] = 1, state[i+8] = 1;
-  for(int j = 0; j < 9; ++j)
-    state[j] = 1, state[10*9+j] = 1;
-
-  // Fix all -1 
-  for(int i = 0; i < 99; ++i)
-    if(state[i] == -1)
-      state[i] = 0;
-
-  printRep();
+    for(int i = 0; i < 99; ++i)
+        if(state[i] == -1)
+            state[i] = 0;
+    
+    //printRep();
 }
 
 bool verifyRep(){
-  for(int i = 0; i < 99; ++i)
-    if(getMaze(i) != state[i]){
-      cout << i << " " << getMaze(i) << " " << state[i] << endl;
-      return false;
-    }
-  if(getDirection() != face){
-    cout << "Direction: " << getDirection() << "Robo: " << face << endl;
-    return false;
-  }
-
-  pair<int,int> l = getLocation();  
-  if(l.first != where[0] || l.second != where[1]){
-    cout << "Loc: " << where[0] << " " << where[1] << " ";
-    cout << l.first << " " << l.second << endl;
-    return false;
-  }
+    for(int i = 0; i < 99; ++i)
+        if(getMaze(i) != state[i]){
+            cout << i << " " << getMaze(i) << " " << state[i] << endl;
+            return false;
+        }
   
-  return true;
+    if(getDirection() != face){
+        cout << "Direction: " << getDirection() << "Robo: " << face << endl;
+        return false;
+    }
+
+    pair<int,int> l = getLocation();
+    if(l.first != where[0] || l.second != where[1]){
+        cout << "Loc: " << where[0] << " " << where[1] << " ";
+        cout << l.first << " " << l.second << endl;
+        return false;
+    }
+    
+    return true;
 }
 
 
@@ -179,17 +223,28 @@ int main() {
     turnLeft();
   }
   */
-  int times = 20;
-for(int i = 0; i < times; ++i){
-    mazeGen();    
-    //mazeWithSeed(-298599628);
-    printMaze();   
-    pepeTheMazeSolver();
-    printStats();
-    cout << verifyRep() << endl;
-    mySleep(1);
-}
-   
+    int times = 10000;
+    int tot_moves = 0;
+    int tot_turns = 0;
+
+    for(int i = 0; i < times; ++i){
+        mazeGen();    
+        //mazeWithSeed(-298599628);
+        //printMaze();   
+    
+        pepeTheMazeSolver();
+       
+        tot_moves += numStepsTaken();
+        tot_turns += numTurnsMade();        
+
+        //printStats();
+        if(!verifyRep()) cout << "pepe was a bad frog" << endl;
+        mySleep(1);
+    }
+
+    cout << "Avg Moves: " << tot_moves / double(times) << endl;
+    cout << "Avg Turns: " << tot_turns / double(times) << endl;
+
 	return 0;	
 }
 

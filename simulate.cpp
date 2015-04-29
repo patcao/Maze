@@ -301,6 +301,10 @@ int numStepsTaken(){
   return numSteps;
 }
 
+int numTurnsMade(){
+    return numTurns;
+}
+
 void printStats(){
   cout << "Steps: " << numSteps << endl;
   cout << "Turns: " << numTurns << endl;

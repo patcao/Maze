@@ -39,9 +39,9 @@ void recordInfo(){                          // Check sensors, write information
     for(int d=0; d<4; d++){
         int rd = (d - face + 4) % 4;
 
-        if(rd == 2) continue;               // we can't see backwards
+        if(rd == 2 || rd == 1) continue;    // we can't see to the right or backwards
 
-        if(rd == 0){                        // if we're looking forwards we can see lots :)
+        if(rd == 0 || rd == 3){             // if we're looking forwards or left we can see lots :)
             int dw = getFarSensor(rd); 
 
             for(int w=1; w < dw; w+=2)
@@ -55,7 +55,7 @@ void recordInfo(){                          // Check sensors, write information
             state[9*(i-dir[d][1]) + j-dir[d][0]] = 1;
         }
 
-        else{
+        /*  else{
             int i = where[0] + dir[d][0];
             int j = where[1] + dir[d][1];
             state[9*i+j] = getSensor(rd);
@@ -64,7 +64,7 @@ void recordInfo(){                          // Check sensors, write information
                 state[9*(i+dir[d][1]) + j+dir[d][0]] = 1;
                 state[9*(i-dir[d][1]) + j-dir[d][0]] = 1;
             }
-        }
+        } */
     }
 }
 
@@ -100,9 +100,9 @@ bool seesNew(int i, int j, int f){
     for(int d=0; d<4; d++){
         int rd = (f + d) % 4;
 
-        if(d == 2) continue;       // we can't see backwards
+        if(d == 2 || d == 1) continue;       // we can't see backwards or right
 
-        if(d == 0){                // we can see forwards a lot
+        if(d == 0 || d == 3){                // we can see forwards or left a lot
             for(int w=1; ; w+=2){
                 int see = state[9*(i+w*dir[rd][0]) + j+w*dir[rd][1]];
                 if(see == 1) break;
@@ -110,7 +110,7 @@ bool seesNew(int i, int j, int f){
             } 
         }
     
-        else if(state[9*(i+dir[rd][0]) + j+dir[rd][1]] == -1) return true;
+        //else if(state[9*(i+dir[rd][0]) + j+dir[rd][1]] == -1) return true;
     }
     return false;
 }
@@ -178,14 +178,14 @@ void pepeTheMazeSolver(){
 
     do{
         recordInfo();
-        printRep();
+        //printRep();
     } while(findNearestUnknown());
 
     for(int i = 0; i < 99; ++i)
         if(state[i] == -1)
             state[i] = 0;
     
-    printRep();
+    //printRep();
 }
 
 bool verifyRep(){
@@ -223,20 +223,28 @@ int main() {
     turnLeft();
   }
   */
-    int times = 1;
-    
+    int times = 10000;
+    int tot_moves = 0;
+    int tot_turns = 0;
+
     for(int i = 0; i < times; ++i){
         mazeGen();    
         //mazeWithSeed(-298599628);
-        printMaze();   
+        //printMaze();   
     
         pepeTheMazeSolver();
-        
-        printStats();
-        cout << verifyRep() << endl;
+       
+        tot_moves += numStepsTaken();
+        tot_turns += numTurnsMade();        
+
+        //printStats();
+        if(!verifyRep()) cout << "pepe was a bad frog" << endl;
         mySleep(1);
     }
-   
+
+    cout << "Avg Moves: " << tot_moves / double(times) << endl;
+    cout << "Avg Turns: " << tot_turns / double(times) << endl;
+
 	return 0;	
 }
 
