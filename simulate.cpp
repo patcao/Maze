@@ -1,6 +1,7 @@
 #include <iostream>
 #include "simulate.h"
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 #include <time.h>
 #include <sys/time.h>
@@ -36,7 +37,7 @@ int getMaze(int n){
   return maze[n];
 }
 
-void mazeGen(){
+void mazeGen(int thresh){
   struct timeval tp;
   gettimeofday(&tp, NULL);
   mazeSeed = (int) tp.tv_sec * 1000L + tp.tv_usec / 1000;
@@ -50,7 +51,7 @@ void mazeGen(){
   //Lay down vertical section of walls
   for(int i = 0; i+2 < 10; i+=2){
     for(int j = 2; j < 8; j+=2){
-      if(rand()%2)
+      if(rand()%10 >= thresh)
         continue;
       maze[i*9+j] = 1;
       maze[(i+1)*9+j] = 1;
@@ -61,7 +62,7 @@ void mazeGen(){
   //Lay down horizontal section of walls
   for(int i = 2; i < 10; i+=2){
     for(int j = 0; j+2 < 8; j+=2){
-      if(rand()%2)
+      if(rand()%10 >= thresh)
         continue;
       maze[i*9+j] = 1;  
       maze[i*9+j+1] = 1;  

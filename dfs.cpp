@@ -24,22 +24,19 @@ struct loc{
 };
 
 
-void dfs(int i, int j);
-
-
 bool isBoundary(int i, int j){
     return i==0 || i==10 || j==0 || j==9;
 }
 
+//Prints the algorithm's representation of the maze to stdout
 void printRep(){
     for(int i=0; i<11; i++){
         for(int j=0; j<9; j++){
             if(i==where[0] && j==where[1]) cout << "X ";
-            else if(i%2 && j%2) cout << "  ";
             else switch(state[9*i+j]){
                 case 0: cout << "  "; break;
                 case 1: cout << "1 "; break;
-                default: cout << (isBoundary(i, j) ? "1 " : "  ");
+                default: cout << "? ";
             }
         }
         cout << endl;
@@ -61,6 +58,7 @@ void recordInfo(){                          // Check sensors, write information
 }
 
 
+
 bool seesNew(int i, int j){
     for(int d=0; d<4; d++)
         if(state[9*(i+dir[d][0]) + j+dir[d][1]] == -1)
@@ -69,22 +67,35 @@ bool seesNew(int i, int j){
 }
 
 
-
+void dfs(int i, int j);
 bool visited[99];
 
-void dfsMazeSolver(){
-    memset(state, 0xff, sizeof(state));
-    memset(visited,false, sizeof(visited));
+
+void reset(){
     where[0] = 9;
     where[1] = 7;
     face = 0;
 
-  //mark the edge of the maze
-  for(int i = 0; i < 99; i+=9)
-    state[i] = 1, state[i+8] = 1;
-  for(int j = 0; j < 9; ++j)
-    state[j] = 1, state[10*9+j] = 1;
+    memset(visited, false, sizeof(visited));
+    memset(state, 0xff, sizeof(state));
 
+    for(int row=0; row<11; row++){
+        state[9 * row + 0] = 1;
+        state[9 * row + 8] = 1;
+    }
+
+    for(int col=0; col<9; col++){
+        state[9 * 0 + col] = 1;
+        state[9 * 10 + col] = 1;
+    }
+
+    for(int row=1; row<11; row+=2)
+        for(int col=1; col<9; col+=2)
+            state[9*row + col] = 0;
+}
+
+void dfsMazeSolver(){
+  reset();
   dfs(9,7);
 
   // Fix all -1 
@@ -94,24 +105,67 @@ void dfsMazeSolver(){
 
 }
 
+//Turns towards the specified location
+void turnTorwards(int i, int j){
+  for(int t=0; t<4; ++t){
+    int ti = where[0] + 2*dir[ (face+t) % 4][0];
+    int tj = where[1] + 2*dir[ (face+t) % 4][1];
+    if(ti == i && tj == j){
+      switch(t){
+        case 0: return;
+        case 1: turnRight(); break;
+        case 2: turnRight(); turnRight(); break;
+        default: turnLeft(); break;
+      }
+      face = (face + t) % 4;
+      return;
+    }
+  }
+}
+
+bool dVisit[99];
+bool isMazeDone(){
+  memset(dVisit, false, sizeof(dVisit));
+  queue< pair<int,int> > q;
+  q.push(make_pair(where[0],where[1])); 
+
+  while(!q.empty()){
+    pair<int,int> top = q.front();
+    q.pop();    
+    int curr = 9*top.first + top.second;
+
+    if(state[curr] == -1)
+      return false;
+    
+    dVisit[curr] = true;
+    for(int d = 0; d < 4; ++d){
+      int di = top.first + dir[ d % 4][0];
+      int dj = top.second + dir[ d % 4][1];
+
+      if(!dVisit[9*di+dj] && state[9*di+dj] != 1){
+        q.push(make_pair(di,dj));
+      }
+    }
+  }
+  cout << "done" << endl;
+  return true;
+}
+
 int count = 0;
 void dfs(int i, int j){
   recordInfo();
   printRep();
-
   visited[9*i+j] = true;
+  state[9*i+j] = 0;
   for(int t = 0; t < 4; ++t){
     if(t == 2)
       continue;
     int ti = i + dir[ (face+t) % 4][0];
     int tj = j + dir[ (face+t) % 4][1];
-
     if(isBoundary(ti,tj))
       continue;
-
-    if(state[9*ti + tj] != 1 && !state[9*ti + tj]){
+    if(state[9*ti + tj] != 1 && !visited[9*ti + tj]){
       visited[9*ti+tj] = true;
-
       int di = i + 2*dir[(face+t)%4][0];      
       int dj = j + 2*dir[(face+t)%4][1];
       switch(t){
@@ -119,10 +173,18 @@ void dfs(int i, int j){
         case 1: turnRight(); face=(face+1)%4;  break;
         default:  turnLeft(); face = (face+3)%4; break;
       }
+
+
       forward();
       where[0] = di;
       where[1] = dj;
       dfs(di,dj);
+      if(isMazeDone())
+        return;
+      turnTorwards(i,j);
+      forward();
+      where[0] = i;
+      where[1] = j;
     }
   }
 }
@@ -148,30 +210,24 @@ bool verifyRep(){
   return true;
 }
 
-
 int main() { 
-  /*
-  printLocation();
-  for(int i = 0; i < 4; ++i){
-    printDirection();
-    cout <<  "Front: " << getFarSensor(0) << endl;
-    cout <<  "Right: " <<  getFarSensor(1) << endl;
-    cout <<  "Behind: " <<  getFarSensor(2) << endl;
-    cout <<  "Left: " << getFarSensor(3) << endl << endl;  
-    turnLeft();
-  }
-  */
-  int times = 1;
-  for(int i = 0; i < times; ++i){
-    mazeGen();    
-    //mazeWithSeed(-298599628);
-    printMaze();   
-    dfsMazeSolver();
-    printStats();
-    cout << verifyRep() << endl;
-    mySleep(1);
-  }
-   
+
+    int times = 10;
+
+      int tot_moves = 0;
+      int tot_turns = 0;
+      for(int i = 0; i < times; ++i){
+          mazeGen(5);    
+          printMaze();         
+          dfsMazeSolver();
+          printRep();        
+          tot_moves += numStepsTaken();
+          tot_turns += numTurnsMade();        
+
+         if(!verifyRep()) cout << "pepe was a bad frog" << endl;
+          mySleep(1);
+      }
+      cout << "Avg Moves: " << tot_moves / double(times) << endl;
+      cout << "Avg Turns: " << tot_turns / double(times) << endl;
 	return 0;	
 }
-

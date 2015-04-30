@@ -7,7 +7,9 @@
 #define SIMULATE
 
 int getMaze(int n);
-void mazeGen();
+//Give a thresh in the range [0,10]
+//Specifies how likely a wall is to be placed
+void mazeGen(int thresh);
 void mazeWithSeed(int seed);
 void clearSections();
 bool forward();

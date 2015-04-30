@@ -228,7 +228,7 @@ int main() {
     int tot_turns = 0;
 
     for(int i = 0; i < times; ++i){
-        mazeGen();    
+        mazeGen(5);    
         //mazeWithSeed(-298599628);
         //printMaze();   
     
