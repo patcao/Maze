@@ -13,6 +13,7 @@ const int dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
 int state[99];                              // -1, 0, 1 for don't know, no wall, wall
 int where[2] = {9, 7};
+int adj0[99];
 
 int face = 0;            // where are we and what direction are we facing?
 
@@ -44,19 +45,52 @@ void printRep(){
     cout << endl;
 }
 
-void recordInfo(){                          // Check sensors, write information         
-    for(int d=0; d<4; d++){
-        int i = where[0] + dir[d][0];
-        int j = where[1] + dir[d][1];
-        state[9*i+j] = getSensor((d - face + 4)%4);
-
-        if(state[9*i+j]){
-            state[9*(i+dir[d][1]) + j+dir[d][0]] = true;
-            state[9*(i-dir[d][1]) + j-dir[d][0]] = true;
+void write(int i, int j, int s){
+    int idx = 9 * i + j;
+    if(state[idx] != -1) return;
+    
+    state[idx] = s;
+    
+  if(s == 0){
+        for(int k=0; k<4; k++){
+            int nbr = 9 * (i + dir[k][0]) + j + dir[k][1];
+            if(++adj0[nbr] == 4 && state[nbr] == -1) state[nbr] = 0;
         }
     }
 }
 
+void recordInfo(){                          // Check sensors, write information         
+    for(int d=0; d<4; d++){
+        int rd = (d - face + 4) % 4;
+
+        if(rd == 2) continue;               // we can't see backwards
+
+        if(rd == 0){                        // if we're looking forwards we can see lots :)
+            int dw = getFarSensor(rd); 
+
+            for(int w=1; w < dw; w+=2)
+                write(where[0] + w*dir[d][0], where[1] + w*dir[d][1], 0);
+
+            int i = where[0] + dw * dir[d][0];
+            int j = where[1] + dw * dir[d][1];
+            
+            write(i, j, 1);
+            write(i + dir[d][1], j + dir[d][0], 1);
+            write(i - dir[d][1], j - dir[d][0], 1);
+        }
+
+        else{
+            int i = where[0] + dir[d][0];
+            int j = where[1] + dir[d][1];
+            write(i, j, getSensor(rd));
+
+            if(state[9*i+j]){
+                write(i + dir[d][1], j + dir[d][0], 1);
+                write(i - dir[d][1], j - dir[d][0], 1);
+            }
+        }
+    }
+}
 
 
 bool seesNew(int i, int j){
