@@ -9,7 +9,7 @@
 int getMaze(int n);
 //Give a thresh in the range [0,10]
 //Specifies how likely a wall is to be placed
-void mazeGen(int thresh);
+void mazeGen(int thresh = 5);
 void mazeWithSeed(int seed);
 void clearSections();
 bool forward();

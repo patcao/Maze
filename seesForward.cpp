@@ -13,6 +13,7 @@ const int dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
 int state[99];                              // -1, 0, 1 for don't know, no wall, wall
 int where[2] = {9, 7};
+int adj0[99];
 
 int face = 0;            // where are we and what direction are we facing?
 
@@ -35,6 +36,20 @@ void printRep(){
     cout << endl;
 }
 
+void write(int i, int j, int s){
+    int idx = 9 * i + j;
+    if(state[idx] != -1) return;
+    
+    state[idx] = s;
+    
+    if(s == 0){
+        for(int k=0; k<4; k++){
+            int nbr = 9 * (i + dir[k][0]) + j + dir[k][1];
+            if(++adj0[nbr] == 4 && state[nbr] == -1) state[nbr] = 0;
+        }
+    }
+}
+
 void recordInfo(){                          // Check sensors, write information         
     for(int d=0; d<4; d++){
         int rd = (d - face + 4) % 4;
@@ -45,24 +60,24 @@ void recordInfo(){                          // Check sensors, write information
             int dw = getFarSensor(rd); 
 
             for(int w=1; w < dw; w+=2)
-                state[9*(where[0] + w*dir[d][0]) + where[1] + w*dir[d][1]] = 0;
+                write(where[0] + w*dir[d][0], where[1] + w*dir[d][1], 0);
 
             int i = where[0] + dw * dir[d][0];
             int j = where[1] + dw * dir[d][1];
             
-            state[9*i+j] = 1;
-            state[9*(i+dir[d][1]) + j+dir[d][0]] = 1;
-            state[9*(i-dir[d][1]) + j-dir[d][0]] = 1;
+            write(i, j, 1);
+            write(i + dir[d][1], j + dir[d][0], 1);
+            write(i - dir[d][1], j - dir[d][0], 1);
         }
 
         else{
             int i = where[0] + dir[d][0];
             int j = where[1] + dir[d][1];
-            state[9*i+j] = getSensor(rd);
+            write(i, j, getSensor(rd));
 
             if(state[9*i+j]){
-                state[9*(i+dir[d][1]) + j+dir[d][0]] = 1;
-                state[9*(i-dir[d][1]) + j-dir[d][0]] = 1;
+                write(i + dir[d][1], j + dir[d][0], 1);
+                write(i - dir[d][1], j - dir[d][0], 1);
             }
         }
     }
@@ -156,21 +171,22 @@ void resetPepe(){
     where[1] = 7;
     face = 0;
 
+    memset(adj0, 0, sizeof(adj0));
     memset(state, 0xff, sizeof(state));
 
     for(int row=0; row<11; row++){
-        state[9 * row + 0] = 1;
-        state[9 * row + 8] = 1;
+        write(row, 0, 1);
+        write(row, 8, 1);
     }
 
     for(int col=0; col<9; col++){
-        state[9 * 0 + col] = 1;
-        state[9 * 10 + col] = 1;
+        write(0, col, 1);
+        write(10, col, 1);
     }
 
     for(int row=1; row<11; row+=2)
         for(int col=1; col<9; col+=2)
-            state[9*row + col] = 0;
+            write(row, col, 0);
 }
 
 void pepeTheMazeSolver(){
@@ -206,7 +222,7 @@ bool verifyRep(){
         cout << l.first << " " << l.second << endl;
         return false;
     }
-    
+
     return true;
 }
 
@@ -238,7 +254,10 @@ int main() {
         tot_turns += numTurnsMade();        
 
         //printStats();
-        if(!verifyRep()) cout << "pepe was a bad frog" << endl;
+        if(!verifyRep()) {
+            cout << "pepe was a bad frog" << endl;
+            printRep();
+        }
         mySleep(1);
     }
 
