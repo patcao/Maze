@@ -11,12 +11,13 @@ using namespace std;
 const int dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 const int off[4] = {0, 1, 3, 2};
 
-int state[99];                              // -1, 0, 1 for don't know, no wall, wall
-bool vis[99];
-int adj0[99];
+int state[99];                              // known info -1, 0, 1 for don't know, no wall, wall
+bool vis[99];                               // have we visited a given location
+int adj0[99];                               // number of adjacent non-walls; used to infer additional non-walls
 
-int where[2] = {9, 7};
-int face = 0;            // where are we and what direction are we facing?
+int where[2];                               // where are we?
+int face;                                   // what direction are we facing?
+int counter;                                // # of known visitables - # of visited; if it hits 0 we're done        
 
 bool isBoundary(int i, int j){
     return i==0 || i==10 || j==0 || j==9;
@@ -92,6 +93,11 @@ struct loc{
 };
 
 void travel(int d){
+    if((face+3)%4 == d){
+        turnLeft();
+        face = d;
+    }
+
     while(face != d){
         turnRight();
         face = (face + 1) % 4;
