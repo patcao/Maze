@@ -12,7 +12,7 @@ const int dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 const int off[4] = {0, 1, 3, 2};
 
 int state[99];                              // known info -1, 0, 1 for don't know, no wall, wall
-bool vis[99];                               // have we visited a given location
+int vis[99];                                // -1, 0, 1 = no info or cannot visit, viewed as visitable, visited 
 int adj0[99];                               // number of adjacent non-walls; used to infer additional non-walls
 
 int where[2];                               // where are we?
@@ -58,11 +58,19 @@ void recordInfo(){                          // Check sensors, write information
 
         if(rd == 2) continue;               // we can't see backwards
 
-        if(rd == 0){                        // if we're looking forwards we can see lots :)
+        if(rd == -1){                        // if we're looking forwards we can see lots :)
             int dw = getFarSensor(rd); 
 
-            for(int w=1; w < dw; w+=2)
-                write(where[0] + w*dir[d][0], where[1] + w*dir[d][1], 0);
+            for(int w=1; w < dw; w+=2){
+                int i = where[0] + w * dir[d][0];
+                int j = where[1] + w * dir[d][1];
+                write(i, j, 0);
+
+                if(vis[9*(i+dir[d][0])+j+dir[d][1]] == -1){
+                    vis[9*(i+dir[d][0])+j+dir[d][1]] = 0;
+                    counter++;
+                } 
+            }
 
             int i = where[0] + dw * dir[d][0];
             int j = where[1] + dw * dir[d][1];
@@ -80,6 +88,14 @@ void recordInfo(){                          // Check sensors, write information
             if(state[9*i+j]){
                 write(i + dir[d][1], j + dir[d][0], 1);
                 write(i - dir[d][1], j - dir[d][0], 1);
+            } 
+            else if(!isBoundary(i, j)){
+                i += dir[d][0];
+                j += dir[d][1];
+                if(vis[9*i+j] == -1){
+                    vis[9*i+j] = 0; 
+                    counter++;
+                }
             }
         }
     }
@@ -96,11 +112,13 @@ void travel(int d){
     if((face+3)%4 == d){
         turnLeft();
         face = d;
+        recordInfo();
     }
 
     while(face != d){
         turnRight();
         face = (face + 1) % 4;
+        recordInfo();
     }
     
     forward();
@@ -110,9 +128,10 @@ void travel(int d){
 
 void dfs(){
     recordInfo();
-    vis[9*where[0]+where[1]] = true;
+    vis[9*where[0]+where[1]] = 1;
+    counter--;
 
-    for(bool went = true; went;){
+    for(bool went = true; went && counter>0;){
         went = false;
     
         for(int i=0; i<4; i++){
@@ -124,10 +143,11 @@ void dfs(){
             
             x += dir[d][0], y += dir[d][1];
             if(isBoundary(x, y)) continue;
-            if(vis[9*x+y]) continue;
+            if(vis[9*x+y]==1) continue;
 
             travel(d);
             dfs();
+            if(counter == 0) return;
             travel((d+2)%4);
             went = true;
         } 
@@ -138,10 +158,13 @@ void resetPepe(){
     where[0] = 9;
     where[1] = 7;
     face = 0;
+    counter = 1;
 
     memset(adj0, 0, sizeof(adj0));
-    memset(vis, 0, sizeof(vis));
+    memset(vis, 0xff, sizeof(vis));
     memset(state, 0xff, sizeof(state));
+
+    vis[8 * 9 + 7] = 0;
 
     for(int row=0; row<11; row++){
         write(row, 0, 1);
@@ -209,8 +232,8 @@ int main() {
         //printStats();
         if(!verifyRep()) {
             cout << "pepe was a bad frog" << endl;
-            printRep();
         }
+
         mySleep(1);
     }
 
