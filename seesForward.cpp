@@ -69,8 +69,10 @@ void recordInfo(){                          // Check sensors, write_loc informat
         if(rd == 0){                        // if we're looking forwards we can see lots :)
             int dw = getFarSensor(rd); 
 
-            for(int w=1; w < dw; w+=2)
+            for(int w=1; w < dw; w+=2){
                 write_loc(where[0] + w*dir[d][0], where[1] + w*dir[d][1], 0);
+                write_loc(where[0] + (w+1)*dir[d][0], where[1] + (w+1)*dir[d][1], 0); 
+            }
 
             int i = where[0] + dw * dir[d][0];
             int j = where[1] + dw * dir[d][1];
@@ -89,6 +91,8 @@ void recordInfo(){                          // Check sensors, write_loc informat
                 write_loc(i + dir[d][1], j + dir[d][0], 1);
                 write_loc(i - dir[d][1], j - dir[d][0], 1);
             }
+            else
+                write_loc(i + dir[d][0], j + dir[d][1], 0);
         }
     }
 }
@@ -200,9 +204,7 @@ void resetPepe(){
         write_loc(10, col, 1);
     }
 
-    for(int row=1; row<11; row+=2)
-        for(int col=1; col<9; col+=2)
-            write_loc(row, col, 0);
+    write_loc(where[0], where[1], 0);
 }
 
 long long totalTime = 0;
@@ -222,7 +224,7 @@ void pepeTheMazeSolver(){
     totalTime += ((after.tv_sec - before.tv_sec)*1000000L + after.tv_usec) - before.tv_usec;
     for(int i = 0; i < 99; ++i)
         if(state[i] == -1)
-            state[i] = 0;
+            state[i] = 2;
     
     //printRep();
 }
@@ -251,13 +253,12 @@ bool verifyRep(){
 
 
 int main() { 
-    int times = 10;
+    int times = 10000;
     int tot_moves = 0;
     int tot_turns = 0;
 
     for(int i = 0; i < times; ++i){
         mazeGen(5);    
-        printMaze();   
     
         pepeTheMazeSolver();
        

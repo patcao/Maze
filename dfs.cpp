@@ -30,6 +30,7 @@ void printRep(){
             else switch(state[9*i+j]){
                 case 0: cout << "  "; break;
                 case 1: cout << "1 "; break;
+                case 2: cout << "2 "; break;
                 default: cout << "? ";
             }
         }
@@ -68,6 +69,7 @@ void recordInfo(){                          // Check sensors, write information
 
                 if(vis[9*(i+dir[d][0])+j+dir[d][1]] == -1){
                     vis[9*(i+dir[d][0])+j+dir[d][1]] = 0;
+                    write(i+dir[d][0], j+dir[d][1], 0);
                     counter++;
                 } 
             }
@@ -93,7 +95,8 @@ void recordInfo(){                          // Check sensors, write information
                 i += dir[d][0];
                 j += dir[d][1];
                 if(vis[9*i+j] == -1){
-                    vis[9*i+j] = 0; 
+                    vis[9*i+j] = 0;
+                    write(i, j, 0); 
                     counter++;
                 }
             }
@@ -130,6 +133,7 @@ void dfs(){
     recordInfo();
     vis[9*where[0]+where[1]] = 1;
     counter--;
+    printRep();
 
     for(bool went = true; went && counter>0;){
         went = false;
@@ -176,9 +180,7 @@ void resetPepe(){
         write(10, col, 1);
     }
 
-    for(int row=1; row<11; row+=2)
-        for(int col=1; col<9; col+=2)
-            write(row, col, 0);
+    write(where[0], where[1], 0);
 }
 
 void pepeTheMazeSolver(){
@@ -188,7 +190,7 @@ void pepeTheMazeSolver(){
 
     for(int i = 0; i < 99; ++i)
         if(state[i] == -1)
-            state[i] = 0;
+            state[i] = 2;
     
     //printRep();
 }
@@ -217,7 +219,7 @@ bool verifyRep(){
 
 int main() { 
     
-    int times = 10000;
+    int times = 1;
     int tot_moves = 0;
     int tot_turns = 0;
 
@@ -233,6 +235,7 @@ int main() {
         if(!verifyRep()) {
             cout << "pepe was a bad frog" << endl;
         }
+        printMaze();
 
         mySleep(1);
     }

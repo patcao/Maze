@@ -291,7 +291,7 @@ void printMaze(){
   for(int i = 0; i < 11; ++i){
     for(int j = 0; j < 9; ++j){
       if(maze[9*i+j] == 2)
-        cout << 2 << " ";
+        cout << "!" << " ";
       else if(maze[9*i+j])
         cout << 1 << " ";
       else
