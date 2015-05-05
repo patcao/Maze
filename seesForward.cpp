@@ -212,17 +212,14 @@ void pepeTheMazeSolver(){
 
     struct timeval before,after;
     gettimeofday(&before, NULL);
-auto start = std::chrono::high_resolution_clock::now();
 
     do{
         recordInfo();
         //printRep();
     } while(findNearestUnknown());
-auto elapsed = std::chrono::high_resolution_clock::now() - start;
     gettimeofday(&after, NULL);
 
     totalTime += ((after.tv_sec - before.tv_sec)*1000000L + after.tv_usec) - before.tv_usec;
-    totalTime2 += std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();a
     for(int i = 0; i < 99; ++i)
         if(state[i] == -1)
             state[i] = 0;
@@ -254,13 +251,13 @@ bool verifyRep(){
 
 
 int main() { 
-    int times = 10000;
+    int times = 10;
     int tot_moves = 0;
     int tot_turns = 0;
 
     for(int i = 0; i < times; ++i){
         mazeGen(5);    
-        //printMaze();   
+        printMaze();   
     
         pepeTheMazeSolver();
        
@@ -279,7 +276,6 @@ int main() {
     cout << "seesNew time " << seesTime << endl;
     cout << "seesNew " << numTimes / double(times) << endl;
     cout << "Total Time: " << totalTime << endl;
-    cout << "Total Time2: " << totalTime2 << endl;
     cout << "Avg Moves: " << tot_moves / double(times) << endl;
     cout << "Avg Turns: " << tot_turns / double(times) << endl;
 

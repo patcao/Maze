@@ -152,7 +152,7 @@ void clearSections(){
 
   for(int i = 0; i < 99; ++i)
     if(!v[i])
-      maze[i] = 0;
+      maze[i] = 2;
 }
 
 bool forward() {  
@@ -255,6 +255,9 @@ void printCurrPos(){
         cout << "X ";
         continue;
       }
+
+      if(maze[9*i+j] == 2)
+        cout << 2 << " ";
       if(maze[9*i+j])
         cout << 1 << " ";
       else
@@ -287,7 +290,9 @@ void printMaze(){
   cout << endl << "Maze Id: " << mazeSeed << endl;
   for(int i = 0; i < 11; ++i){
     for(int j = 0; j < 9; ++j){
-      if(maze[9*i+j])
+      if(maze[9*i+j] == 2)
+        cout << 2 << " ";
+      else if(maze[9*i+j])
         cout << 1 << " ";
       else
         cout << "  ";
