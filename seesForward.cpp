@@ -1,6 +1,8 @@
 #include "simulate.h"
 #include <iostream>
 #include <queue>
+#include <time.h>
+#include <sys/time.h>
 
 //to compile this, use the command "g++ testSim.cpp simulate.cpp -o simulate" in the
 //terminal, then run the program with the command "simulate"
@@ -8,14 +10,22 @@
 
 using namespace std;
 
-const int INF = 0x7f7f7f7f;
-const int dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+const char INF = 0x7f;
+const char dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
-int state[99];                              // -1, 0, 1 for don't know, no wall, wall
+char state[99];                              // -1, 0, 1 for don't know, no wall, wall
 int where[2] = {9, 7};
-int adj0[99];
-
+char adj0[99];
 int face = 0;            // where are we and what direction are we facing?
+char dst[11][9][4];
+
+struct loc{
+    int i, j, k;
+    loc (int _i, int _j, int _k){
+        i = _i, j = _j, k = _k;
+    }
+};
+
 
 bool isBoundary(int i, int j){
     return i==0 || i==10 || j==0 || j==9;
@@ -36,7 +46,7 @@ void printRep(){
     cout << endl;
 }
 
-void write(int i, int j, int s){
+void write_loc(int i, int j, int s){
     int idx = 9 * i + j;
     if(state[idx] != -1) return;
     
@@ -50,7 +60,7 @@ void write(int i, int j, int s){
     }
 }
 
-void recordInfo(){                          // Check sensors, write information         
+void recordInfo(){                          // Check sensors, write_loc information         
     for(int d=0; d<4; d++){
         int rd = (d - face + 4) % 4;
 
@@ -60,37 +70,28 @@ void recordInfo(){                          // Check sensors, write information
             int dw = getFarSensor(rd); 
 
             for(int w=1; w < dw; w+=2)
-                write(where[0] + w*dir[d][0], where[1] + w*dir[d][1], 0);
+                write_loc(where[0] + w*dir[d][0], where[1] + w*dir[d][1], 0);
 
             int i = where[0] + dw * dir[d][0];
             int j = where[1] + dw * dir[d][1];
             
-            write(i, j, 1);
-            write(i + dir[d][1], j + dir[d][0], 1);
-            write(i - dir[d][1], j - dir[d][0], 1);
+            write_loc(i, j, 1);
+            write_loc(i + dir[d][1], j + dir[d][0], 1);
+            write_loc(i - dir[d][1], j - dir[d][0], 1);
         }
 
         else{
             int i = where[0] + dir[d][0];
             int j = where[1] + dir[d][1];
-            write(i, j, getSensor(rd));
+            write_loc(i, j, getSensor(rd));
 
             if(state[9*i+j]){
-                write(i + dir[d][1], j + dir[d][0], 1);
-                write(i - dir[d][1], j - dir[d][0], 1);
+                write_loc(i + dir[d][1], j + dir[d][0], 1);
+                write_loc(i - dir[d][1], j - dir[d][0], 1);
             }
         }
     }
 }
-
-struct loc{
-    int i, j, k;
-    loc (int _i, int _j, int _k){
-        i = _i, j = _j, k = _k;
-    }
-};
-
-int dst[11][9][4];
 
 void go(int i, int j, int k){
     if(i == where[0] && j == where[1] && k == face) return;
@@ -111,7 +112,13 @@ void go(int i, int j, int k){
     where[1] += 2*dir[k][1];
 }
 
+int numTimes = 0;
+long long seesTime = 0;
 bool seesNew(int i, int j, int f){
+    struct timeval before,after;
+    gettimeofday(&before, NULL);
+
+    ++numTimes;
     for(int d=0; d<4; d++){
         int rd = (f + d) % 4;
 
@@ -127,20 +134,29 @@ bool seesNew(int i, int j, int f){
     
         else if(state[9*(i+dir[rd][0]) + j+dir[rd][1]] == -1) return true;
     }
+
+    gettimeofday(&after, NULL);
+    seesTime += ((after.tv_sec - before.tv_sec)*1000000L + after.tv_usec) - before.tv_usec;
     return false;
 }
 
+long long bfsTime = 0;
 bool findNearestUnknown(){
     memset(dst, 0x7f, sizeof(dst));
     queue<loc> q;
     q.push(loc(where[0], where[1], face));
     dst[where[0]][where[1]][face] = 0;
 
+    struct timeval before,after;
+    gettimeofday(&before, NULL);
     while(!q.empty()){
         loc top = q.front();
         q.pop();
         
         if(seesNew(top.i, top.j, top.k)){
+
+            gettimeofday(&after, NULL);
+            bfsTime += ((after.tv_sec - before.tv_sec)*1000000L + after.tv_usec) - before.tv_usec;
             go(top.i, top.j, top.k);
             return true;
         }
@@ -175,28 +191,38 @@ void resetPepe(){
     memset(state, 0xff, sizeof(state));
 
     for(int row=0; row<11; row++){
-        write(row, 0, 1);
-        write(row, 8, 1);
+        write_loc(row, 0, 1);
+        write_loc(row, 8, 1);
     }
 
     for(int col=0; col<9; col++){
-        write(0, col, 1);
-        write(10, col, 1);
+        write_loc(0, col, 1);
+        write_loc(10, col, 1);
     }
 
     for(int row=1; row<11; row+=2)
         for(int col=1; col<9; col+=2)
-            write(row, col, 0);
+            write_loc(row, col, 0);
 }
 
+long long totalTime = 0;
+long long totalTime2 = 0;
 void pepeTheMazeSolver(){
     resetPepe();
+
+    struct timeval before,after;
+    gettimeofday(&before, NULL);
+auto start = std::chrono::high_resolution_clock::now();
 
     do{
         recordInfo();
         //printRep();
     } while(findNearestUnknown());
+auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    gettimeofday(&after, NULL);
 
+    totalTime += ((after.tv_sec - before.tv_sec)*1000000L + after.tv_usec) - before.tv_usec;
+    totalTime2 += std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();a
     for(int i = 0; i < 99; ++i)
         if(state[i] == -1)
             state[i] = 0;
@@ -228,24 +254,12 @@ bool verifyRep(){
 
 
 int main() { 
-  /*
-  printLocation();
-  for(int i = 0; i < 4; ++i){
-    printDirection();
-    cout <<  "Front: " << getFarSensor(0) << endl;
-    cout <<  "Right: " <<  getFarSensor(1) << endl;
-    cout <<  "Behind: " <<  getFarSensor(2) << endl;
-    cout <<  "Left: " << getFarSensor(3) << endl << endl;  
-    turnLeft();
-  }
-  */
     int times = 10000;
     int tot_moves = 0;
     int tot_turns = 0;
 
     for(int i = 0; i < times; ++i){
         mazeGen(5);    
-        //mazeWithSeed(-298599628);
         //printMaze();   
     
         pepeTheMazeSolver();
@@ -261,6 +275,11 @@ int main() {
         mySleep(1);
     }
 
+    cout << "bfs time " << bfsTime << endl;
+    cout << "seesNew time " << seesTime << endl;
+    cout << "seesNew " << numTimes / double(times) << endl;
+    cout << "Total Time: " << totalTime << endl;
+    cout << "Total Time2: " << totalTime2 << endl;
     cout << "Avg Moves: " << tot_moves / double(times) << endl;
     cout << "Avg Turns: " << tot_turns / double(times) << endl;
 
