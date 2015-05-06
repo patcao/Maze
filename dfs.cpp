@@ -59,7 +59,7 @@ void recordInfo(){                          // Check sensors, write information
 
         if(rd == 2) continue;               // we can't see backwards
 
-        if(rd == -1){                        // if we're looking forwards we can see lots :)
+        if(rd == 0){                        // if we're looking forwards we can see lots :)
             int dw = getFarSensor(rd); 
 
             for(int w=1; w < dw; w+=2){
@@ -67,8 +67,7 @@ void recordInfo(){                          // Check sensors, write information
                 int j = where[1] + w * dir[d][1];
                 write(i, j, 0);
 
-                if(vis[9*(i+dir[d][0])+j+dir[d][1]] == -1){
-                    vis[9*(i+dir[d][0])+j+dir[d][1]] = 0;
+                if(w+1<dw && vis[9*(i+dir[d][0])+j+dir[d][1]] == -1){
                     write(i+dir[d][0], j+dir[d][1], 0);
                     counter++;
                 } 
@@ -95,7 +94,6 @@ void recordInfo(){                          // Check sensors, write information
                 i += dir[d][0];
                 j += dir[d][1];
                 if(vis[9*i+j] == -1){
-                    vis[9*i+j] = 0;
                     write(i, j, 0); 
                     counter++;
                 }
@@ -187,17 +185,19 @@ void pepeTheMazeSolver(){
     resetPepe();
 
     dfs();
+    printRep();
 
     for(int i = 0; i < 99; ++i)
         if(state[i] == -1)
             state[i] = 2;
     
-    //printRep();
+    printRep();
 }
 
 bool verifyRep(){
     for(int i = 0; i < 99; ++i)
         if(getMaze(i) != state[i]){
+            cout << "REP IS WRONG ";
             cout << i << " " << getMaze(i) << " " << state[i] << endl;
             return false;
         }
@@ -224,10 +224,10 @@ int main() {
     int tot_turns = 0;
 
     for(int i = 0; i < times; ++i){
-        mazeGen(5);    
+//        mazeGen(5);    
     
         pepeTheMazeSolver();
-       
+
         tot_moves += numStepsTaken();
         tot_turns += numTurnsMade();        
 

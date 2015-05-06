@@ -12,10 +12,12 @@ using namespace std;
 
 const char INF = 0x7f;
 const char dir[4][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+const char mask[4] = {0x03, 0x0c, 0x30, 0xc0};
 
-char state[99];                              // -1, 0, 1 for don't know, no wall, wall
+unsigned char state[25];                              // 2, 0, 1 for don't know, no wall, wall
+unsigned char adj0[99];
+
 int where[2] = {9, 7};
-char adj0[99];
 int face = 0;            // where are we and what direction are we facing?
 char dst[11][9][4];
 
@@ -26,16 +28,26 @@ struct loc{
     }
 };
 
-
 bool isBoundary(int i, int j){
     return i==0 || i==10 || j==0 || j==9;
+}
+
+char read_state(int i, int j){
+    int idx = 9*i+j, rem = idx % 4;
+    return (state[idx/4] & mask[rem]) >> 2*rem;
+}
+
+void write_state(int i, int j, char v){
+    int idx = 9*i+j, rem = idx % 4;
+    state[idx/4] &= ~mask[rem];
+    state[idx/4] |= v << (2*rem);
 }
 
 void printRep(){
     for(int i=0; i<11; i++){
         for(int j=0; j<9; j++){
             if(i==where[0] && j==where[1]) cout << "X ";
-            else switch(state[9*i+j]){
+            else switch(read_state(i, j)){
                 case 0: cout << "  "; break;
                 case 1: cout << "1 "; break;
                 default: cout << "? ";
@@ -47,15 +59,14 @@ void printRep(){
 }
 
 void write_loc(int i, int j, int s){
-    int idx = 9 * i + j;
-    if(state[idx] != -1) return;
-    
-    state[idx] = s;
+    if(read_state(i, j) != 2) return;
+    write_state(i, j, s); 
     
     if(s == 0){
         for(int k=0; k<4; k++){
             int nbr = 9 * (i + dir[k][0]) + j + dir[k][1];
-            if(++adj0[nbr] == 4 && state[nbr] == -1) state[nbr] = 0;
+            if(++adj0[nbr] == 4 && read_state(i+dir[k][0], j+dir[k][1]) == 2)
+                write_state(i+dir[k][0], j+dir[k][1], 0);
         }
     }
 }
@@ -87,7 +98,7 @@ void recordInfo(){                          // Check sensors, write_loc informat
             int j = where[1] + dir[d][1];
             write_loc(i, j, getSensor(rd));
 
-            if(state[9*i+j]){
+            if(read_state(i,j)){
                 write_loc(i + dir[d][1], j + dir[d][0], 1);
                 write_loc(i - dir[d][1], j - dir[d][0], 1);
             }
@@ -130,13 +141,13 @@ bool seesNew(int i, int j, int f){
 
         if(d == 0){                // we can see forwards a lot
             for(int w=1; ; w+=2){
-                int see = state[9*(i+w*dir[rd][0]) + j+w*dir[rd][1]];
+                int see = read_state(i+w*dir[rd][0], j+w*dir[rd][1]);
                 if(see == 1) break;
-                if(see == -1) return true;
+                if(see == 2) return true;
             } 
         }
     
-        else if(state[9*(i+dir[rd][0]) + j+dir[rd][1]] == -1) return true;
+        else if(read_state(i+dir[rd][0], j+dir[rd][1]) == 2) return true;
     }
 
     gettimeofday(&after, NULL);
@@ -172,7 +183,7 @@ bool findNearestUnknown(){
             }
 
         int facing = 9 * (top.i + dir[top.k][0]) + top.j + dir[top.k][1];
-        if(facing >= 0 && facing<=99 && state[facing] != 1){
+        if(facing >= 0 && facing<=99 && read_state(top.i+dir[top.k][0], top.j + dir[top.k][1]) != 1){
             int fi = top.i + 2 * dir[top.k][0];
             int fj = top.j + 2 * dir[top.k][1];
 
@@ -192,7 +203,7 @@ void resetPepe(){
     face = 0;
 
     memset(adj0, 0, sizeof(adj0));
-    memset(state, 0xff, sizeof(state));
+    memset(state, 0xaa, sizeof(state));
 
     for(int row=0; row<11; row++){
         write_loc(row, 0, 1);
@@ -222,20 +233,27 @@ void pepeTheMazeSolver(){
     gettimeofday(&after, NULL);
 
     totalTime += ((after.tv_sec - before.tv_sec)*1000000L + after.tv_usec) - before.tv_usec;
-    for(int i = 0; i < 99; ++i)
-        if(state[i] == -1)
-            state[i] = 2;
+    
+    for(int i=0; i<11; i++)
+        for(int j=0; j<9; j++)
+            if(read_state(i, j) == 2)
+                write_state(i, j, 3);
     
     //printRep();
 }
 
 bool verifyRep(){
-    for(int i = 0; i < 99; ++i)
-        if(getMaze(i) != state[i]){
-            cout << i << " " << getMaze(i) << " " << state[i] << endl;
-            return false;
+    for(int i=0; i<11; i++)
+        for(int j=0; j<9; j++){
+            int k = 9 * i + j;
+            int s = read_state(i, j);
+
+            if(getMaze(k) != (s == 3 ? 2 : s)){
+                cout << k << " " << getMaze(k) << " " << s << endl;
+                return false;
+            }
         }
-  
+
     if(getDirection() != face){
         cout << "Direction: " << getDirection() << "Robo: " << face << endl;
         return false;
@@ -269,6 +287,7 @@ int main() {
         if(!verifyRep()) {
             cout << "pepe was a bad frog" << endl;
             printRep();
+            printMaze();
         }
         mySleep(1);
     }
